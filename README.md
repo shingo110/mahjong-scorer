@@ -1,36 +1,66 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🀄 麻将计分器
 
-## Getting Started
+线下打麻将专用记分工具 —— 简单、快速、清晰。
 
-First, run the development server:
+## 功能
+
+- **首页** — 选择人数（2~8人局）、输入昵称 / 🎲 随机中文昵称、自动去重校验
+- **记分** — 玩家标签页切换、大分数展示、数字面板（右侧竖排大号 +/−）
+- **记分记录** — 每次操作的时间线，按倒序排列
+- **结算** — 大赢家 / 大输家 → 最终排名 → 转账说明（最小转账次数算法）
+- **深色 / 浅色主题** — 右上角一键切换，自动记忆偏好
+- **返回确认** — 返回时弹窗提醒，防止误操作丢失数据
+
+## 快速开始
 
 ```bash
+cd mahjong-scorer
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+打开 **http://localhost:30001** 即可使用。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 技术栈
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| 技术 | 用途 |
+|------|------|
+| [Next.js](https://nextjs.org) (App Router) | 框架 |
+| [TypeScript](https://www.typescriptlang.org) | 类型安全 |
+| [Tailwind CSS v4](https://tailwindcss.com) | 样式 |
+| [shadcn/ui](https://ui.shadcn.com) | UI 组件（基于 @base-ui/react） |
+| [React Context](https://react.dev) | 游戏状态管理 |
 
-## Learn More
+## 项目结构
 
-To learn more about Next.js, take a look at the following resources:
+```
+src/
+├── app/
+│   ├── page.tsx            # 首页（昵称设置）
+│   ├── layout.tsx          # 布局（主题切换 + GameProvider）
+│   ├── globals.css         # 全局样式 + 竹绿色系配色
+│   ├── game/
+│   │   ├── page.tsx        # 记分页
+│   │   └── number-pad.tsx  # 数字面板组件
+│   ├── history/
+│   │   └── page.tsx        # 记分记录页
+│   └── settlement/
+│       └── page.tsx        # 结算页
+├── components/
+│   ├── ui/                 # shadcn/ui 组件
+│   └── theme-toggle.tsx    # 深色/浅色切换
+└── lib/
+    ├── types.ts            # 类型定义
+    ├── utils.ts            # cn() 工具函数
+    ├── utils/
+    │   └── app.ts          # 昵称库、结算算法、本地存储
+    └── game-context.tsx    # 游戏状态管理
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 开发
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run dev      # 启动开发服务器 → :30001
+npm run build    # 生产构建
+npm run lint     # ESLint 检查
+```
