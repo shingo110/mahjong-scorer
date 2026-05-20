@@ -1,0 +1,22 @@
+{
+  "name": "麻将计分器",
+  "short_name": "麻将计分",
+  "description": "线下打麻将专用记分工具",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5faf6",
+  "theme_color": "#5BBFBA",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
