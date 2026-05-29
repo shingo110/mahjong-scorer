@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useGame } from '@/lib/game-context';
 import { Button } from '@/components/ui/button';
@@ -12,10 +13,12 @@ export default function HistoryPage() {
   const { players, history } = state;
 
   // 没数据回首页
-  if (players.length === 0) {
-    router.replace('/');
-    return null;
-  }
+  useEffect(() => {
+    if (players.length === 0) {
+      router.replace('/');
+    }
+  }, [players.length, router]);
+  if (players.length === 0) return null;
 
   // 按时间倒序排列
   const reversed = [...history].reverse();

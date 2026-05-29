@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useGame } from '@/lib/game-context';
 import { Button } from '@/components/ui/button';
@@ -17,15 +17,17 @@ import {
 
 export default function GamePage() {
   const router = useRouter();
-  const { state, activePlayer, dispatch, settle } = useGame();
+  const { state, activePlayer, dispatch, reset, settle } = useGame();
   const { players, activePlayerIndex } = state;
   const [showBackConfirm, setShowBackConfirm] = useState(false);
 
   // 如果没玩家，回首页
-  if (players.length === 0) {
-    router.replace('/');
-    return null;
-  }
+  useEffect(() => {
+    if (players.length === 0) {
+      router.replace('/');
+    }
+  }, [players.length, router]);
+  if (players.length === 0) return null;
 
   const maxScore = Math.max(...players.map(p => p.score), 0);
   const minScore = Math.min(...players.map(p => p.score), 0);
@@ -143,6 +145,7 @@ export default function GamePage() {
               className="flex-1 sm:flex-none"
               onClick={() => {
                 setShowBackConfirm(false);
+                reset();
                 router.push('/');
               }}
             >
