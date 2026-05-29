@@ -17,7 +17,7 @@ interface SavedPos {
 
 const THEMES = [
   { id: 'light', name: '亮原色', colors: ['#5BBFBA', '#F5F5F5', '#2B2D42'] },
-  { id: 'dark', name: '暗原色', colors: ['#40916C', '#1A1A1A', '#E5E5E5'] },
+  { id: 'dark', name: '暗原色', colors: ['#333333', '#1A1A1A', '#E5E5E5'] },
   { id: '高级灰紫', name: '高级灰紫', colors: ['#8D99AE', '#2B2D42', '#EDF2F4'] },
   { id: '极简黑白', name: '极简黑白', colors: ['#A3A3A3', '#0A0A0A', '#F5F5F5'] },
   { id: '科技蓝灰', name: '科技蓝灰', colors: ['#334155', '#0F172A', '#38BDF8'] },

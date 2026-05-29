@@ -146,7 +146,6 @@ export default function GamePage() {
               onClick={() => {
                 setShowBackConfirm(false);
                 reset();
-                router.push('/');
               }}
             >
               确认返回
