@@ -13,9 +13,11 @@ const DEFAULT_NAMES = ['', '', '', ''];
 
 export default function HomePage() {
   const router = useRouter();
-  const { startGame } = useGame();
+  const { startGame, state } = useGame();
   const [names, setNames] = useState<string[]>([...DEFAULT_NAMES]);
   const [playerCount, setPlayerCount] = useState(4);
+
+  const hasOngoing = state.phase !== 'setup' && state.players.length > 0;
 
   // 当前激活的玩家昵称（trim后）
   const activeNames = useMemo(
@@ -73,6 +75,22 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-1 flex-col items-center justify-center p-6">
+      {hasOngoing && (
+        <div className="w-full max-w-md mx-auto mb-3 p-3 rounded-xl border border-primary/30 bg-primary/5 flex items-center justify-between gap-3">
+          <div className="text-sm min-w-0">
+            <p className="font-medium truncate">检测到进行中的牌局</p>
+            <p className="text-xs text-muted-foreground">
+              {state.players.length} 人 · {state.phase === 'settlement' ? '已结算' : '记分中'}
+            </p>
+          </div>
+          <Button
+            size="sm"
+            onClick={() => router.push(state.phase === 'settlement' ? '/settlement' : '/game')}
+          >
+            继续
+          </Button>
+        </div>
+      )}
       <Card className="w-full max-w-md mx-auto shadow-lg border-border/50">
         <CardHeader className="text-center pb-2">
           <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-3xl">

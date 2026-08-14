@@ -7,7 +7,6 @@ const THEME_KEY = 'mahjong-theme';
 const POS_KEY = 'mahjong-theme-pos';
 const BTN_SIZE = 40;
 const EDGE_PAD = 12;
-const DEFAULT_TOP = 80;
 const DEFAULT_BOTTOM = 100;
 
 interface SavedPos {
@@ -39,6 +38,7 @@ export default function ThemeToggle() {
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState<SavedPos | null>(null);
   const dragging = useRef(false);
+  const moved = useRef(false);
   const anchor = useRef({ x: 0, y: 0, left: 0, top: 0 });
   const btnRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -81,6 +81,7 @@ export default function ThemeToggle() {
     if (!el) return;
     el.setPointerCapture(e.pointerId);
     dragging.current = true;
+    moved.current = false;
     const r = el.getBoundingClientRect();
     anchor.current = { x: e.clientX, y: e.clientY, left: r.left, top: r.top };
   }, []);
@@ -99,6 +100,11 @@ export default function ThemeToggle() {
     const el = btnRef.current;
     if (!el) return;
     el.releasePointerCapture(e.pointerId);
+
+    // 判断是否发生了明显拖动，用于抑制随之而来的 click
+    const dx = e.clientX - anchor.current.x;
+    const dy = e.clientY - anchor.current.y;
+    moved.current = Math.abs(dx) > 5 || Math.abs(dy) > 5;
 
     const r = el.getBoundingClientRect();
     const vw = window.innerWidth;
@@ -139,8 +145,6 @@ export default function ThemeToggle() {
       : { right: EDGE_PAD }),
   };
 
-  const activeTheme = THEMES.find(t => t.id === theme) ?? THEMES[0];
-
   const panelStyle = (): React.CSSProperties => {
     if (!btnRef.current) return { position: 'fixed', top: 0, left: 0, zIndex: 1000, opacity: 0 };
     const r = btnRef.current.getBoundingClientRect();
@@ -168,7 +172,13 @@ export default function ThemeToggle() {
       <button
         ref={btnRef}
         style={btnStyle}
-        onClick={() => setOpen(v => !v)}
+        onClick={() => {
+          if (moved.current) {
+            moved.current = false;
+            return;
+          }
+          setOpen(v => !v);
+        }}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
@@ -194,6 +204,8 @@ export default function ThemeToggle() {
                   key={t.id}
                   onClick={() => selectTheme(t.id)}
                   title={t.name}
+                  aria-label={t.name}
+                  aria-pressed={isActive}
                   style={{
                     width: 44,
                     height: 44,

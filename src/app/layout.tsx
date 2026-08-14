@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { GameProvider } from "@/lib/game-context";
@@ -15,16 +15,36 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+// 防止主题闪烁：在 React hydration 前同步读取本地主题并设置 <html> 属性
+const themeInitScript = `(function(){try{var t=localStorage.getItem('mahjong-theme')||'light';var d=document.documentElement;d.setAttribute('data-theme',t);d.classList.toggle('dark',t!=='light');}catch(e){}})();`;
+
 export const metadata: Metadata = {
   title: "麻将计分器",
   description: "线下打麻将专用记分工具 — 简单、快速、清晰",
   manifest: "/manifest.json",
+  applicationName: "麻将计分器",
+  appleWebApp: {
+    capable: true,
+    title: "麻将计分器",
+    statusBarStyle: "default",
+  },
   icons: {
     icon: [
       { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
       { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
     ],
+    apple: [{ url: "/icon-192.png", sizes: "192x192", type: "image/png" }],
   },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f5faf6" },
+    { media: "(prefers-color-scheme: dark)", color: "#1a1a1a" },
+  ],
 };
 
 export default function RootLayout({
@@ -39,6 +59,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         <ThemeToggle />
         <PwaRegister />
         <GameProvider>{children}</GameProvider>

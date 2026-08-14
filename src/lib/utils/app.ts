@@ -1,25 +1,4 @@
-import { v4 as uuidv4 } from 'uuid';
 import { Player, Settlement } from '../types';
-
-// 生成6位随机房间号
-export function generateRoomId(): string {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let result = '';
-  for (let i = 0; i < 6; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return result;
-}
-
-// 生成设备唯一标识
-export function getDeviceId(): string {
-  let deviceId = localStorage.getItem('mahjong-device-id');
-  if (!deviceId) {
-    deviceId = uuidv4();
-    localStorage.setItem('mahjong-device-id', deviceId);
-  }
-  return deviceId;
-}
 
 /* ─── 随机中文昵称库（2~4字） ─── */
 
@@ -41,41 +20,6 @@ const NICKNAME_POOL = [
 export function generateRandomNickname(): string {
   return NICKNAME_POOL[Math.floor(Math.random() * NICKNAME_POOL.length)];
 }
-
-// 本地存储管理
-export const storage = {
-  saveRoom(roomId: string, playerId: string) {
-    localStorage.setItem('mahjong-current-room', JSON.stringify({ roomId, playerId }));
-  },
-
-  getCurrentRoom() {
-    const data = localStorage.getItem('mahjong-current-room');
-    if (!data) return null;
-    try {
-      return JSON.parse(data) as { roomId: string; playerId: string };
-    } catch {
-      return null;
-    }
-  },
-
-  clearRoom() {
-    localStorage.removeItem('mahjong-current-room');
-  },
-
-  saveRoomData(roomId: string, data: Record<string, unknown>) {
-    localStorage.setItem(`mahjong-room-${roomId}`, JSON.stringify(data));
-  },
-
-  getRoomData(roomId: string) {
-    const data = localStorage.getItem(`mahjong-room-${roomId}`);
-    if (!data) return null;
-    try {
-      return JSON.parse(data);
-    } catch {
-      return null;
-    }
-  },
-};
 
 // 多人净盈亏平账算法
 export function calculateSettlement(players: Player[]): Settlement[] {
@@ -110,22 +54,29 @@ export function calculateSettlement(players: Player[]): Settlement[] {
     creditor.net -= amount;
     debtor.net += amount;
 
-    if (creditor.net === 0) i++;
-    if (debtor.net === 0) j++;
+    // 整数场景直接判等；若未来引入小数，用容差比较
+    if (Math.abs(creditor.net) < 1e-9) i++;
+    if (Math.abs(debtor.net) < 1e-9) j++;
   }
 
   return settlements;
 }
 
-// 获取大赢家和大输家
-export function getWinnersAndLosers(players: Player[]): { winner: Player | null; loser: Player | null } {
+// 获取大赢家和大输家（支持并列，返回数组）
+export function getWinnersAndLosers(players: Player[]): {
+  winners: Player[];
+  losers: Player[];
+} {
   if (players.length === 0) {
-    return { winner: null, loser: null };
+    return { winners: [], losers: [] };
   }
 
   const sorted = [...players].sort((a, b) => b.score - a.score);
-  return {
-    winner: sorted[0],
-    loser: sorted[sorted.length - 1],
-  };
+  const top = sorted[0].score;
+  const bottom = sorted[sorted.length - 1].score;
+
+  const winners = sorted.filter(p => p.score === top);
+  const losers = sorted.filter(p => p.score === bottom);
+
+  return { winners, losers };
 }

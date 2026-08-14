@@ -1,7 +1,9 @@
 'use client';
 
-import React, { createContext, useContext, useReducer, useCallback } from 'react';
+import React, { createContext, useContext, useReducer, useCallback, useEffect, useState } from 'react';
 import { Player } from './types';
+
+const STORAGE_KEY = 'mahjong-game-state';
 
 /* ─── 游戏状态定义 ─── */
 
@@ -25,6 +27,7 @@ export interface ScoreLog {
 /* ─── Action 类型 ─── */
 
 type GameAction =
+  | { type: 'HYDRATE'; state: GameState }
   | { type: 'SET_PLAYERS'; players: string[] }
   | { type: 'SET_ACTIVE_PLAYER'; index: number }
   | { type: 'ADD_SCORE'; playerId: string; delta: number }
@@ -35,6 +38,9 @@ type GameAction =
 
 function gameReducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
+    case 'HYDRATE':
+      return action.state;
+
     case 'SET_PLAYERS':
       return {
         ...state,
@@ -78,6 +84,8 @@ function gameReducer(state: GameState, action: GameAction): GameState {
 }
 
 /* ─── 初始状态 ─── */
+// 注意：SSR 下所有客户端首帧必须与预渲染 HTML 完全一致，
+// 因此首帧恒为 initialState，存档在挂载后通过 HYDRATE 注入，避免 hydration mismatch。
 
 const initialState: GameState = {
   phase: 'setup',
@@ -86,14 +94,33 @@ const initialState: GameState = {
   history: [],
 };
 
+/** 从 localStorage 读取存档（仅客户端，挂载后调用） */
+function loadFromStorage(): GameState | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<GameState>;
+    if (parsed && Array.isArray(parsed.players)) {
+      return { ...initialState, ...parsed };
+    }
+  } catch {
+    /* 脏数据：忽略，回落到初始态 */
+  }
+  return null;
+}
+
 /* ─── Context ─── */
 
 interface GameContextValue {
   state: GameState;
-  dispatch: React.Dispatch<GameAction>;
+  /** 存档是否已从 localStorage 水合完成（用于防止首帧误判空局） */
+  hydrated: boolean;
+  /** 当前活跃玩家 */
   activePlayer: Player | null;
   /** 为当前活跃玩家加分 */
   scoreActivePlayer: (delta: number) => void;
+  /** 切换当前活跃玩家 */
+  setActivePlayer: (index: number) => void;
   /** 开始游戏 */
   startGame: (names: string[]) => void;
   /** 结算 */
@@ -106,6 +133,30 @@ const GameContext = createContext<GameContextValue | null>(null);
 
 export function GameProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(gameReducer, initialState);
+  const [hydrated, setHydrated] = useState(false);
+
+  // 挂载后水合存档（首帧保持与 SSR 一致，杜绝 hydration mismatch）
+  useEffect(() => {
+    const saved = loadFromStorage();
+    if (saved) {
+      dispatch({ type: 'HYDRATE', state: saved });
+    }
+    setHydrated(true);
+  }, []);
+
+  // 持久化：水合完成后的每次状态变更同步写入 localStorage
+  useEffect(() => {
+    if (!hydrated) return; // 水合前禁止写回，避免覆盖存档
+    try {
+      if (state.phase === 'setup' && state.players.length === 0) {
+        localStorage.removeItem(STORAGE_KEY);
+      } else {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      }
+    } catch {
+      /* 忽略配额或隐私模式异常 */
+    }
+  }, [state, hydrated]);
 
   const activePlayer =
     state.players[state.activePlayerIndex] ?? null;
@@ -117,6 +168,10 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     },
     [activePlayer],
   );
+
+  const setActivePlayer = useCallback((index: number) => {
+    dispatch({ type: 'SET_ACTIVE_PLAYER', index });
+  }, []);
 
   const startGame = useCallback((names: string[]) => {
     dispatch({ type: 'SET_PLAYERS', players: names });
@@ -132,7 +187,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <GameContext.Provider
-      value={{ state, dispatch, activePlayer, scoreActivePlayer, startGame, settle, reset }}
+      value={{ state, hydrated, activePlayer, scoreActivePlayer, setActivePlayer, startGame, settle, reset }}
     >
       {children}
     </GameContext.Provider>

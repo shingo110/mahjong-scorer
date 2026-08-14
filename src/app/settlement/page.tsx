@@ -9,8 +9,11 @@ import { Trophy, RotateCcw, Home, ArrowRight } from 'lucide-react';
 
 export default function SettlementPage() {
   const router = useRouter();
-  const { state } = useGame();
+  const { state, reset, hydrated } = useGame();
   const { players } = state;
+
+  // 水合前占位，避免存档未载入时误判为空
+  if (!hydrated) return null;
 
   // 没数据回首页 — 用空状态展示，避免导航冲突
   if (players.length === 0) {
@@ -26,12 +29,15 @@ export default function SettlementPage() {
   }
 
   const settlements = calculateSettlement(players);
-  const { winner, loser } = getWinnersAndLosers(players);
+  const { winners, losers } = getWinnersAndLosers(players);
+  const winner = winners[0] ?? null;
+  const loser = losers[0] ?? null;
 
   // 按分数从高到低排序
   const ranked = [...players].sort((a, b) => b.score - a.score);
 
   function handlePlayAgain() {
+    reset();
     router.push('/');
   }
 
@@ -54,6 +60,9 @@ export default function SettlementPage() {
                 <p className="text-xs text-muted-foreground mb-1">大赢家</p>
                 <p className="text-lg font-bold text-success">{winner.name}</p>
                 <p className="text-sm text-muted-foreground">+{winner.score}</p>
+                {winners.length > 1 && (
+                  <p className="text-xs text-muted-foreground mt-1">（{winners.length}人并列）</p>
+                )}
               </CardContent>
             </Card>
           )}
@@ -64,6 +73,9 @@ export default function SettlementPage() {
                 <p className="text-xs text-muted-foreground mb-1">大输家</p>
                 <p className="text-lg font-bold text-destructive">{loser.name}</p>
                 <p className="text-sm text-muted-foreground">{loser.score}</p>
+                {losers.length > 1 && (
+                  <p className="text-xs text-muted-foreground mt-1">（{losers.length}人并列）</p>
+                )}
               </CardContent>
             </Card>
           )}

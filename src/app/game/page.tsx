@@ -17,16 +17,20 @@ import {
 
 export default function GamePage() {
   const router = useRouter();
-  const { state, activePlayer, dispatch, reset, settle } = useGame();
+  const { state, activePlayer, setActivePlayer, reset, settle, hydrated } = useGame();
   const { players, activePlayerIndex } = state;
+  const isSettled = state.phase === 'settlement';
   const [showBackConfirm, setShowBackConfirm] = useState(false);
 
-  // 如果没玩家，回首页
+  // 水合后仍无玩家，回首页（注意：所有 hook 必须在此之前调用，避免破坏 hooks 顺序）
   useEffect(() => {
     if (players.length === 0) {
       router.replace('/');
     }
   }, [players.length, router]);
+
+  // 水合前先占位，避免把"存档未载入"误判为空局
+  if (!hydrated) return null;
   if (players.length === 0) return null;
 
   const maxScore = Math.max(...players.map(p => p.score), 0);
@@ -46,7 +50,7 @@ export default function GamePage() {
           return (
             <button
               key={p.id}
-              onClick={() => dispatch({ type: 'SET_ACTIVE_PLAYER', index: i })}
+              onClick={() => setActivePlayer(i)}
               className={`
                 flex flex-col items-center gap-1.5 min-w-[72px] flex-1 rounded-xl p-3
                 transition-all duration-200
@@ -86,7 +90,21 @@ export default function GamePage() {
 
       {/* ─── 底部：数字面板 ─── */}
       <div className="flex-shrink-0 px-3 pb-3">
-        <NumberPad />
+        {isSettled ? (
+          <div className="rounded-xl border border-border/50 bg-card p-6 text-center">
+            <p className="text-sm text-muted-foreground">本局已结算，无法继续记分</p>
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-3"
+              onClick={() => router.push('/settlement')}
+            >
+              查看结算结果
+            </Button>
+          </div>
+        ) : (
+          <NumberPad />
+        )}
       </div>
 
       {/* ─── 底部操作栏 ─── */}
@@ -94,7 +112,7 @@ export default function GamePage() {
         <Button
           variant="outline"
           size="sm"
-          className="flex-1 gap-1.5"
+          className="flex-1 gap-1.5 h-11"
           onClick={() => setShowBackConfirm(true)}
         >
           <Undo2 className="h-4 w-4" />
@@ -104,7 +122,7 @@ export default function GamePage() {
         <Button
           variant="outline"
           size="sm"
-          className="flex-1 gap-1.5"
+          className="flex-1 gap-1.5 h-11"
           onClick={() => router.push('/history')}
         >
           <ScrollText className="h-4 w-4" />
@@ -113,14 +131,14 @@ export default function GamePage() {
 
         <Button
           size="sm"
-          className="flex-1 gap-1.5"
+          className="flex-1 gap-1.5 h-11"
           onClick={() => {
-            settle();
+            if (!isSettled) settle();
             router.push('/settlement');
           }}
         >
           <Trophy className="h-4 w-4" />
-          结算
+          {isSettled ? '查看结果' : '结算'}
         </Button>
       </div>
 

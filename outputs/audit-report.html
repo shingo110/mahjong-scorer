@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>麻将计分器 · 对抗式代码审查报告</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --bg-soft: #161b22;
+    --bg-card: #1c2128;
+    --border: #30363d;
+    --text: #c9d1d9;
+    --text-dim: #8b949e;
+    --text-bright: #f0f6fc;
+    --p0: #f85149;
+    --p1: #f85149;
+    --p2: #d29922;
+    --p3: #58a6ff;
+    --ok: #3fb950;
+    --code-bg: #0a0e14;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    line-height: 1.7;
+    font-size: 15px;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 40px 24px 80px; }
+  h1 { color: var(--text-bright); font-size: 28px; margin: 0 0 6px; }
+  h2 { color: var(--text-bright); font-size: 21px; margin: 40px 0 14px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  h3 { color: var(--text-bright); font-size: 17px; margin: 22px 0 10px; }
+  .meta { color: var(--text-dim); font-size: 13px; margin-bottom: 24px; }
+  .meta span { margin-right: 16px; }
+  .summary {
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 22px;
+    margin: 18px 0 8px;
+  }
+  .stats { display: flex; gap: 12px; flex-wrap: wrap; margin: 18px 0; }
+  .stat {
+    flex: 1; min-width: 110px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    text-align: center;
+  }
+  .stat .n { font-size: 26px; font-weight: 700; }
+  .stat .l { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
+  .s-p1 .n { color: var(--p1); }
+  .s-p2 .n { color: var(--p2); }
+  .s-p3 .n { color: var(--p3); }
+  .s-ok .n { color: var(--ok); }
+  .badge {
+    display: inline-block;
+    padding: 2px 9px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    vertical-align: middle;
+  }
+  .b-p1 { background: rgba(248,81,73,.15); color: var(--p1); border: 1px solid rgba(248,81,73,.4); }
+  .b-p2 { background: rgba(210,153,34,.15); color: var(--p2); border: 1px solid rgba(210,153,34,.4); }
+  .b-p3 { background: rgba(88,166,255,.15); color: var(--p3); border: 1px solid rgba(88,166,255,.4); }
+  .b-ok { background: rgba(63,185,80,.15); color: var(--ok); border: 1px solid rgba(63,185,80,.4); }
+  .finding {
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 14px 0;
+  }
+  .finding.p1 { border-left-color: var(--p1); }
+  .finding.p2 { border-left-color: var(--p2); }
+  .finding.p3 { border-left-color: var(--p3); }
+  .finding h3 { display: flex; align-items: center; gap: 10px; margin-top: 0; }
+  .finding h3 .title { flex: 1; }
+  .field { margin: 8px 0; }
+  .field .k { color: var(--text-dim); font-weight: 600; font-size: 13px; min-width: 64px; display: inline-block; }
+  .field .v { color: var(--text); }
+  code, pre {
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 13px;
+  }
+  code {
+    background: var(--code-bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #f0883e;
+  }
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 14px;
+    overflow-x: auto;
+    color: #c9d1d9;
+    margin: 10px 0;
+  }
+  pre code { background: none; padding: 0; color: inherit; }
+  .file { color: #7ee787; }
+  details { margin-top: 8px; }
+  details summary {
+    cursor: pointer;
+    color: var(--text-dim);
+    font-size: 13px;
+    user-select: none;
+    padding: 4px 0;
+  }
+  details summary:hover { color: var(--text); }
+  details[open] summary { color: var(--text); margin-bottom: 6px; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 14px; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--border); }
+  th { color: var(--text-dim); font-weight: 600; font-size: 13px; }
+  td code { font-size: 12px; }
+  .verdict {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 10px 16px;
+    align-items: start;
+    margin: 10px 0;
+  }
+  .verdict .label { color: var(--text-dim); font-size: 13px; font-weight: 600; white-space: nowrap; }
+  ul { margin: 6px 0; padding-left: 22px; }
+  li { margin: 4px 0; }
+  .tag { color: var(--text-dim); font-size: 12px; }
+  .toc { background: var(--bg-soft); border: 1px solid var(--border); border-radius: 8px; padding: 14px 20px; margin: 16px 0; }
+  .toc a { color: var(--p3); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .toc ul { margin: 4px 0; }
+  .note { color: var(--text-dim); font-size: 13px; font-style: italic; }
+  hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>麻将计分器 · 对抗式代码审查报告</h1>
+<div class="meta">
+  <span>项目：mahjong-scorer (Next.js 16.2.6 · React 19 · TS · Tailwind v4)</span>
+  <span>审查方式：逐文件对抗式审查 + 静态分析</span>
+  <span>审查日期：2026-08-14</span>
+</div>
+
+<div class="summary">
+  <strong>整体评价：</strong>代码风格整洁、无 XSS/注入类安全漏洞、<code>eslint .</code> 零警告。但存在<strong>两个会让产品在真实使用中失效的 P1 级缺陷</strong>——Service Worker 的 cache-first 策略导致新版本永远无法触达老用户；游戏状态仅存内存，刷新即丢失全部记分。此外有大量"多人联机"遗留死代码与死依赖（socket.io-client、uuid）未清理，字体变量断裂导致设计字体未生效，主题切换存在白屏闪烁与拖动误触发。整体处于"功能可用但工程化与健壮性欠债较多"的状态。
+</div>
+
+<div class="stats">
+  <div class="stat s-p1"><div class="n">3</div><div class="l">P1 严重</div></div>
+  <div class="stat s-p2"><div class="n">6</div><div class="l">P2 重要</div></div>
+  <div class="stat s-p3"><div class="n">8</div><div class="l">P3 轻微</div></div>
+  <div class="stat s-ok"><div class="n">2</div><div class="l">确认安全</div></div>
+</div>
+
+<div class="toc">
+  <strong>目录</strong>
+  <ul>
+    <li><a href="#sec-p1">P1 严重（3 项）</a>：SW 更新失效 · 状态不持久化 · 死依赖</li>
+    <li><a href="#sec-p2">P2 重要（6 项）</a>：字体断裂 · 主题 FOUC · 拖动误触发 · 结算状态机 · SW 缓存膨胀 · lint 失效</li>
+    <li><a href="#sec-p3">P3 轻微（8 项）</a>：前导零 · 语义色 · PWA manifest · 日期 · 并列排名 · a11y · 封装 · 死 CSS</li>
+    <li><a href="#sec-safe">确认安全的方面</a></li>
+    <li><a href="#sec-fix">建议修复顺序</a></li>
+  </ul>
+</div>
+
+<h2 id="sec-p1">P1 · 严重问题</h2>
+
+<div class="finding p1">
+  <h3><span class="badge b-p1">P1</span><span class="title">1. Service Worker cache-first 导致新版本永远无法触达老用户</span></h3>
+  <div class="field"><span class="k">位置</span><span class="v"><code class="file">public/sw.js</code> 第 17–30 行</span></div>
+  <div class="field"><span class="k">问题</span><span class="v">fetch handler 采用 cache-first：先 <code>caches.match</code> 命中即返回，未命中才 fetch 并 <code>cache.put</code>。install 阶段已预缓存 <code>'/'</code>。静态导出 + <code>trailingSlash</code> 下，<code>'/'</code> 命中预缓存的旧 <code>index.html</code> → 引用旧 JS chunk → 旧 chunk 同样命中缓存 → <strong>用户永远停留在首次访问时的版本</strong>。即便服务端已部署新版，老用户拿不到更新，除非手动清缓存或卸载重装。</span></div>
+  <div class="field"><span class="k">影响</span><span class="v">对一个持续迭代的 PWA 是阻断性缺陷：发版后修复无法下发，bug 修复与新功能对老用户永久不可见。</span></div>
+  <details>
+    <summary>展开：现状代码与修复方案</summary>
+    <pre><code>// ❌ 现状：纯 cache-first，无版本治理
+self.addEventListener('fetch', (event) =&gt; {
+  event.respondWith(
+    caches.match(event.request).then((cached) =&gt; {
+      return cached || fetch(event.request).then((response) =&gt; {
+        return caches.open(CACHE).then((cache) =&gt; {
+          cache.put(event.request, response.clone());
+          return response;
+        });
+      });
+    })
+  );
+});</code></pre>
+    <pre><code>// ✅ 修复：导航请求 network-first（保证拿到最新 HTML），静态资源 stale-while-revalidate
+// + activate 阶段清理旧版本缓存
+const CACHE = 'mahjong-scorer-v2';
+self.addEventListener('activate', (event) =&gt; {
+  event.waitUntil(
+    caches.keys().then((keys) =&gt;
+      Promise.all(keys.filter(k =&gt; k !== CACHE).map(k =&gt; caches.delete(k)))
+    )
+  );
+  self.clients.claim();
+});
+self.addEventListener('fetch', (event) =&gt; {
+  const req = event.request;
+  if (req.method !== 'GET') return;
+  const url = new URL(req.url);
+  if (url.origin !== location.origin) return; // 仅缓存同源
+  // HTML 导航：网络优先，失败回退缓存
+  if (req.mode === 'navigate' || req.destination === 'document') {
+    event.respondWith(
+      fetch(req).then((res) =&gt; {
+        const copy = res.clone();
+        caches.open(CACHE).then((c) =&gt; c.put(req, copy));
+        return res;
+      }).catch(() =&gt; caches.match(req).then((r) =&gt; r || caches.match('/')))
+    );
+    return;
+  }
+  // 其他静态资源：stale-while-revalidate
+  event.respondWith(
+    caches.match(req).then((cached) =&gt; {
+      const network = fetch(req).then((res) =&gt; {
+        caches.open(CACHE).then((c) =&gt; c.put(req, res.clone()));
+        return res;
+      }).catch(() =&gt; cached);
+      return cached || network;
+    })
+  );
+});</code></pre>
+    <p class="note">注意：修改 SW 后务必 bump <code>CACHE</code> 版本号，否则旧 SW 不会重新激活。</p>
+  </details>
+</div>
+
+<div class="finding p1">
+  <h3><span class="badge b-p1">P1</span><span class="title">2. 游戏状态仅存内存，刷新/切后台即丢失全部记分</span></h3>
+  <div class="field"><span class="k">位置</span><span class="v"><code class="file">src/lib/game-context.tsx</code> 第 108 行 <code>useReducer(gameReducer, initialState)</code></span></div>
+  <div class="field"><span class="k">问题</span><span class="v">players / score / history 全部只存在于 React state，无任何持久化。<code class="file">src/lib/utils/app.ts</code> 里已写好完整的 <code>storage</code> 工具（saveRoom/getRoomData 等）却<strong>从未接入</strong>。后果：</span></div>
+  <ul>
+    <li>记分到一半误刷新页面 → 数据全丢，回到 setup 首页</li>
+    <li>手机切后台被系统回收进程 → 重进丢失</li>
+    <li>直接访问/刷新 <code>/game</code>、<code>/history</code>、<code>/settlement</code> 子路由 → Context 重置为 initialState，<code>players.length===0</code> 触发 <code>router.replace('/')</code> 或显示"暂无数据"</li>
+  </ul>
+  <div class="field"><span class="k">影响</span><span class="v">对一个"记分"工具，数据丢失即核心功能受损。尤其线下麻将一局可能持续数小时，中途丢分体验灾难。</span></div>
+  <details>
+    <summary>展开：修复方案</summary>
+    <pre><code>// ✅ reducer 懒初始化从 localStorage 读取，每次变更后持久化
+const STORAGE_KEY = 'mahjong-game-state';
+
+function lazyInit(): GameState {
+  if (typeof window === 'undefined') return initialState;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return { ...initialState, ...JSON.parse(raw) };
+  } catch { /* ignore */ }
+  return initialState;
+}
+
+const [state, dispatch] = useReducer(gameReducer, undefined, lazyInit);
+
+useEffect(() =&gt; {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
+}, [state]);</code></pre>
+    <p class="note">注意 reset 时也要 <code>localStorage.removeItem</code>；settlement 完成后可选地归档历史局到独立 key。</p>
+  </details>
+</div>
+
+<div class="finding p1">
+  <h3><span class="badge b-p1">P1</span><span class="title">3. 死代码与死依赖：未完成的"多人联机"残留</span></h3>
+  <div class="field"><span class="k">位置</span><span class="v"><code class="file">src/lib/utils/app.ts</code>、<code class="file">src/lib/types.ts</code>（<code>Room</code>）、<code class="file">package.json</code></span></div>
+  <div class="field"><span class="k">问题</span><span class="v">全局搜索确认以下内容<strong>在整个 src 中零调用方</strong>，仅为内部自引用：</span></div>
+  <ul>
+    <li>依赖 <code>socket.io-client</code>（^4.8.3）—— src 无任何 <code>import</code>，纯死依赖</li>
+    <li>依赖 <code>uuid</code>（^14.0.0）—— 仅被 <code>getDeviceId()</code> 使用，而 <code>getDeviceId</code> 本身无人调用</li>
+    <li>函数：<code>generateRoomId()</code>、<code>getDeviceId()</code></li>
+    <li>对象：<code>storage</code> 全部方法（saveRoom / getCurrentRoom / clearRoom / saveRoomData / getRoomData）</li>
+    <li>类型：<code>Room</code>（types.ts）</li>
+  </ul>
+  <div class="field"><span class="k">影响</span><span class="v">① <code>socket.io-client</code> 约 40KB+ 无谓进入 bundle（若被 tree-shake 掉则仅 lock 文件污染，但仍误导）；② 扩大供应链攻击面；③ 与实际"纯本地单机"架构矛盾，严重误导后续维护者以为存在联机能力；④ <code>uuid</code> 只为生成 deviceId，可用 <code>crypto.randomUUID()</code> 替代（浏览器原生）。</span></div>
+  <div class="field"><span class="k">修复</span><span class="v">删除上述死代码；从 <code>package.json</code> 移除 <code>socket.io-client</code> 与 <code>uuid</code>，重新 <code>npm install</code>。若未来要做联机，再按需引入。</span></div>
+</div>
+
+<h2 id="sec-p2">P2 · 重要问题</h2>
+
+<div class="finding p2">
+  <h3><span class="badge b-p2">P2</span><span class="title">4. 字体变量断裂：Geist 字体从未生效，全站回退系统字体</span></h3>
+  <div class="field"><span class="k">位置</span><span class="v"><code class="file">src/app/globals.css</code> 第 10–12 行；<code class="file">src/app/layout.tsx</code> 第 8–11 行</span></div>
+  <div class="field"><span class="k">问题</span><span class="v">layout 中 <code>Geist({ variable: "--font-geist-sans" })</code> 定义的是 <code>--font-geist-sans</code>，但 globals.css 的 <code>@theme inline</code> 块里写的是自引用：</span></div>
+  <pre><code>--font-sans: var(--font-sans);      /* ❌ 自引用，无意义 */
+--font-mono: var(--font-geist-mono); /* ✅ 正确 */
+--font-heading: var(--font-sans);    /* ❌ 指向断裂的 --font-sans */</code></pre>
+  <div class="field"><span class="k">影响</span><span class="v">html 上虽挂了 geist 的 variable class，但 <code>font-sans</code> / <code>font-heading</code> 工具类拿不到 Geist，全站（含 <code>@apply font-sans</code>）回退到系统字体。设计意图（Geist 无衬线）完全未实现。</div>
+  <div class="field"><span class="k">修复</span><span class="v">改为 <code>--font-sans: var(--font-geist-sans);</code> 与 <code>--font-heading: var(--font-geist-sans);</code></div>
+</div>
+
+<div class="finding p2">
+  <h3><span class="badge b-p2">P2</span><span class="title">5. 主题切换白屏闪烁（FOUC），无防闪脚本</span></h3>
+  <div class="field"><span class="k">位置</span><span class="v"><code class="file">src/components/theme-toggle.tsx</code> 第 46–57 行（<code>applyTheme</code> 在 <code>useEffect</code> 中调用）；<code class="file">src/app/layout.tsx</code></span></div>
+  <div class="field"><span class="k">问题</span><span class="v">预渲染 HTML（见 <code>out/index.html</code>）的 <code>&lt;html&gt;</code> 无 <code>data-theme</code> 也无 <code>.dark</code>，即默认 light。若用户本地存了 dark / 自定义暗色主题，需等 React hydration + <code>useEffect</code> 执行后才切换 <code>.dark</code>。<strong>首屏先白后黑</strong>，每次打开都闪烁。无内联 head 脚本提前设置主题。</span></div>
+  <div class="field"><span class="k">修复</span><span class="v">在 layout 的 <code>&lt;head&gt;</code> 注入一段同步内联脚本，在 React hydrate 前读取 <code>localStorage['mahjong-theme']</code> 并设置 <code>document.documentElement</code> 的 <code>data-theme</code> 与 <code>.dark</code> class。</div>
+</div>
+
+<div class="finding p2">
+  <h3><span class="badge b-p2">P2</span><span class="title">6. 主题悬浮球：拖动定位后误触发 click 开关面板</span></h3>
+  <div class="field"><span class="k">位置</span><span class="v"><code class="file">src/components/theme-toggle.tsx</code> 第 168–178 行（同一 button 同时挂 <code>onClick</code> 与 <code>onPointerDown/Move/Up</code>）</span></div>
+  <div class="field"><span class="k">问题</span><span class="v">pointerdown 置 <code>dragging=true</code>，pointerup 置 <code>false</code>，但浏览器在 pointerup 后仍会派发 <code>click</code>。<strong>即使用户发生了明显拖动位移，松手时仍触发 <code>setOpen(v =&gt; !v)</code></strong>，导致拖动后面板被意外打开或关闭，行为不可预测。代码未用位移阈值抑制 click。</span></div>
+  <div class="field"><span class="k">修复</span><span class="v">在 pointerdown 记录起始坐标，pointerup 计算位移；若位移超过阈值（如 5px）则标记 <code>movedRef</code>，在 <code>onClick</code> 中若 <code>movedRef</code> 为真则忽略并重置。</div>
+</div>
+
+<div class="finding p2">
+  <h3><span class="badge b-p2">P2</span><span class="title">7. 结算后仍可返回记分页继续改分，状态机不闭环</span></h3>
+  <div class="field"><span class="k">位置</span><span class="v"><code class="file">src/app/settlement/page.tsx</code> 第 131–135 行（"返回记分" <code>router.push('/game')</code>）；<code class="file">src/lib/game-context.tsx</code> <code>SETTLE</code> 只改 phase</span></div>
+  <div class="field"><span class="k">问题</span><span class="v"><code>settle()</code> 仅把 <code>phase</code> 置为 <code>'settlement'</code>，但 game 页<strong>不检查 phase</strong>，结算后点"返回记分"仍可正常加减分、再结算。<code>phase</code> 状态机形同虚设，结算结果与后续操作语义混乱。</span></div>
+  <div class="field"><span class="k">修复</span><span class="v">game 页在 <code>phase !== 'playing'</code> 时禁用 NumberPad 或引导回结算页；或结算后锁定计分入口。</div>
+</div>
+
+<div class="finding p2">
+  <h3><span class="badge b-p2">P2</span><span class="title">8. Service Worker 无缓存清理 + 无白名单，缓存无限增长</span></h3>
+  <div class="field"><span class="k">位置</span><span class="v"><code class="file">public/sw.js</code></span></div>
+  <div class="field"><span class="k">问题</span><span class="v">① 无 <code>activate</code> 阶段删除旧版本缓存，<code>CACHE</code> 固定 <code>'mahjong-scorer-v1'</code>，改版后旧缓存永不释放；② <code>cache.put(event.request)</code> 缓存所有成功响应，无同源白名单，跨域请求、未来引入的第三方资源都会被缓存，长期使用存储膨胀。</span></div>
+  <div class="field"><span class="k">修复</span><span class="v">见 P1-1 修复方案中的 <code>activate</code> 清理与同源白名单。</div>
+</div>
+
+<div class="finding p2">
+  <h3><span class="badge b-p2">P2</span><span class="title">9. lint 脚本失效，质量门禁形同虚设</span></h3>
+  <div class="field"><span class="k">位置</span><span class="v"><code class="file">package.json</code> 第 9 行 <code>"lint": "eslint"</code>（无参数）</span></div>
+  <div class="field"><span class="k">问题</span><span class="v"><code>npm run lint</code> 报 <code>'eslint' 不是内部或外部命令</code>（git bash 下 PATH 注入异常）。即便修复 PATH，ESLint 9 flat config 下 <code>eslint</code> 不带路径行为不明确。本地用 <code>./node_modules/.bin/eslint .</code> 可跑且<strong>零警告</strong>——但这恰恰说明配置宽松：未开 <code>@typescript-eslint/no-unused-vars</code>，故 P1-3 的死代码无法被 lint 拦截。另：<code>node_modules/.bin/tsc</code> 缺失，无法独立做类型检查，只能依赖 <code>next build</code>。</span></div>
+  <div class="field"><span class="k">修复</span><span class="v">脚本改为 <code>"lint": "eslint ."</code>；按需开启 <code>no-unused-vars</code>（warn）拦截死代码；确保 typescript 已安装以便 CI 独立 <code>tsc --noEmit</code>。</div>
+</div>
+
+<h2 id="sec-p3">P3 · 轻微 / 优化</h2>
+
+<div class="finding p3">
+  <h3><span class="badge b-p3">P3</span><span class="title">10. 数字面板前导零：显示与实际值不一致</span></h3>
+  <div class="field"><span class="k">位置</span><span class="v"><code class="file">src/app/game/number-pad.tsx</code> 第 17、54 行</span></div>
+  <div class="field"><span class="k">问题</span><span class="v"><code>input</code> 为字符串，显示原始 <code>input</code>（如 <code>"01"</code>），但 <code>value = parseInt("01") = 1</code>，按 <code>+</code> 实际加 1。用户看到 01 却加 1，存在认知偏差。输入 <code>"00"</code> 时 value=0 按钮 disabled，但显示 00。</span></div>
+  <div class="field"><span class="k">修复</span><span class="v">追加数字时去除前导零：<code>const next = (parseInt(prev + key, 10) || 0).toString()</code>，或直接显示归一化后的 value。</div>
+</div>
+
+<div class="finding p3">
+  <h3><span class="badge b-p3">P3</span><span class="title">11. 自定义主题下语义色（成功/危险）丢失</span></h3>
+  <div class="field"><span class="k">位置</span><span class="v"><code class="file">src/app/globals.css</code> 各自定义主题块（如第 180–182 行）</span></div>
+  <div class="field"><span class="k">问题</span><span class="v">高级灰紫、极简黑白等主题把 <code>--destructive</code> 与 <code>--success</code> 设为同色（如灰紫主题两者都是 <code>#8D99AE</code>）。结算页"大赢家"(success 绿) 与"大输家"(destructive 红) 颜色一致，红绿语义区分失效。</span></div>
+  <div class="field"><span class="k">修复</span><span class="v">自定义主题保留 success/destructive 的色相差异，或至少保持明度对比。</div>
+</div>
+
+<div class="finding p3">
+  <h3><span class="badge b-p3">P3</span><span class="title">12. PWA manifest / 图标不完整</span></h3>
+  <div class="field"><span class="k">位置</span><span class="v"><code class="file">public/manifest.json</code>、<code class="file">src/app/layout.tsx</code> metadata</span></div>
+  <div class="field"><span class="k">问题</span><span class="v">manifest 缺 <code>id</code> 字段、图标无 <code>purpose: "maskable"</code>；HTML head 无 <code>&lt;meta name="theme-color"&gt;</code>、无 <code>apple-touch-icon</code>、无 <code>apple-mobile-web-app-*</code>。iOS 添加到主屏体验差，Android 自适应图标裁切。</span></div>
+  <div class="field"><span class="k">修复</span><span class="v">补 <code>id</code>、maskable 图标；layout 中通过 <code>export const viewport = { themeColor: ... }</code> 与 <code>icons.apple</code> 补齐。</div>
+</div>
+
+<div class="finding p3">
+  <h3><span class="badge b-p3">P3</span><span class="title">13. 历史记录跨天不显示日期</span></h3>
+  <div class="field"><span class="k">位置</span><span class="v"><code class="file">src/app/history/page.tsx</code> 第 60–61 行</span></div>
+  <div class="field"><span class="k">问题</span><span class="v">时间只取 <code>HH:MM:SS</code>，长时间牌局跨天时无法区分日期。</span></div>
+  <div class="field"><span class="k">修复</span><span class="v">跨天时显示 <code>MM-DD HH:MM</code>。</div>
+</div>
+
+<div class="finding p3">
+  <h3><span class="badge b-p3">P3</span><span class="title">14. getWinnersAndLosers 并列第一只取一个</span></h3>
+  <div class="field"><span class="k">位置</span><span class="v"><code class="file">src/lib/utils/app.ts</code> 第 126–130 行</span></div>
+  <div class="field"><span class="k">问题</span><span class="v">同分时 <code>sort</code> 后取 <code>sorted[0]</code>，"大赢家"可能不准确（取决于原数组顺序），未标注并列。</span></div>
+  <div class="field"><span class="k">修复</span><span class="v">并列时全部返回或显示"并列"。</div>
+</div>
+
+<div class="finding p3">
+  <h3><span class="badge b-p3">P3</span><span class="title">15. 可访问性：主题色块无 aria、按钮触摸目标偏小</span></h3>
+  <div class="field"><span class="k">位置</span><span class="v"><code class="file">src/components/theme-toggle.tsx</code> 第 193–212 行（色块仅 <code>title</code>）；<code class="file">src/components/ui/button.tsx</code> size <code>sm</code>（h-7=28px）</span></div>
+  <div class="field"><span class="k">问题</span><span class="v">主题色块按钮无 <code>aria-label</code> / <code>aria-pressed</code>，屏幕阅读器无法识别；game 页底部操作栏用 <code>size="sm"</code>（28px），低于 Apple 建议的 44px 触摸目标。</span></div>
+  <div class="field"><span class="k">修复</span><span class="v">色块补 <code>aria-label={t.name}</code> 与 <code>aria-pressed={isActive}</code>；移动端操作按钮适当增大。</div>
+</div>
+
+<div class="finding p3">
+  <h3><span class="badge b-p3">P3</span><span class="title">16. Context 封装不彻底：暴露原始 dispatch</span></h3>
+  <div class="field"><span class="k">位置</span><span class="v"><code class="file">src/lib/game-context.tsx</code> 第 91–103、135 行</span></div>
+  <div class="field"><span class="k">问题</span><span class="v"><code>GameContextValue</code> 既暴露语义方法（startGame/scoreActivePlayer…）又暴露原始 <code>dispatch</code>，game 页直接 <code>dispatch({ type: 'SET_ACTIVE_PLAYER' })</code>。封装边界被绕过，后续重构 reducer 类型会波及页面。</span></div>
+  <div class="field"><span class="k">修复</span><span class="v">增加 <code>setActivePlayer(index)</code> 语义方法，从 context 移除 <code>dispatch</code>。</div>
+</div>
+
+<div class="finding p3">
+  <h3><span class="badge b-p3">P3</span><span class="title">17. globals.css 大量未使用的主题变量（死 CSS）</span></h3>
+  <div class="field"><span class="k">位置</span><span class="v"><code class="file">src/app/globals.css</code> 各主题块</span></div>
+  <div class="field"><span class="k">问题</span><span class="v">每个主题都定义了 <code>--sidebar-*</code>（5 个）与 <code>--chart-*</code>（5 个）变量，但本应用没有任何 sidebar 或 chart 组件，共约 200+ 行死 CSS。</span></div>
+  <div class="field"><span class="k">修复</span><span class="v">删除未使用的 sidebar / chart 变量，精简为实际用到的 token。</div>
+</div>
+
+<h2 id="sec-safe">确认安全的方面</h2>
+<div class="finding" style="border-left-color: var(--ok);">
+  <h3><span class="badge b-ok">SAFE</span><span class="title">无 XSS / 注入风险</span></h3>
+  <div class="field"><span class="k">结论</span><span class="v">全局搜索 <code>dangerouslySetInnerHTML</code> / <code>innerHTML</code> / <code>eval</code> / <code>new Function</code> / <code>document.write</code> —— <strong>无任何匹配</strong>。用户输入的昵称、金额均作为 React 文本节点渲染，自动转义。<code>localStorage</code> 的 JSON.parse 均有 try/catch 保护。无外部 API 调用、无密钥、无敏感数据处理。从安全角度，这是一个低风险的应用。</div>
+</div>
+<div class="finding" style="border-left-color: var(--ok);">
+  <h3><span class="badge b-ok">SAFE</span><span class="title">结算算法正确</span></h3>
+  <div class="field"><span class="k">结论</span><span class="v"><code>calculateSettlement</code> 采用经典贪心平账（债权人/债务人两端对冲），逻辑正确。因数字面板只输入整数，<code>amount = Math.min</code> 恒为整数，<code>creditor.net === 0</code> 的浮点比较隐患在当前数据下不成立（若未来引入小数输入需改为 <code>Math.abs(net) &lt; 1e-9</code>）。</div>
+</div>
+
+<h2 id="sec-fix">建议修复顺序</h2>
+<table>
+  <thead><tr><th>优先级</th><th>编号</th><th>问题</th><th>工作量</th></tr></thead>
+  <tbody>
+    <tr><td><span class="badge b-p1">P1</span></td><td>2</td><td>游戏状态持久化</td><td>中</td></tr>
+    <tr><td><span class="badge b-p1">P1</span></td><td>1+8</td><td>SW 策略重写（network-first + 清理）</td><td>中</td></tr>
+    <tr><td><span class="badge b-p1">P1</span></td><td>3</td><td>删除死代码与死依赖</td><td>小</td></tr>
+    <tr><td><span class="badge b-p2">P2</span></td><td>4</td><td>修复字体变量</td><td>极小</td></tr>
+    <tr><td><span class="badge b-p2">P2</span></td><td>5</td><td>主题防闪脚本</td><td>小</td></tr>
+    <tr><td><span class="badge b-p2">P2</span></td><td>6</td><td>拖动 click 抑制</td><td>小</td></tr>
+    <tr><td><span class="badge b-p2">P2</span></td><td>7</td><td>结算状态机闭环</td><td>小</td></tr>
+    <tr><td><span class="badge b-p2">P2</span></td><td>9</td><td>lint 脚本 + 严格规则</td><td>小</td></tr>
+    <tr><td><span class="badge b-p3">P3</span></td><td>10–17</td><td>体验/工程优化</td><td>逐项小</td></tr>
+  </tbody>
+</table>
+
+<p class="note">注：lucide-react 版本号为 <code>^1.14.0</code>，与官方常见的 0.x 版本序列不一致，疑似 fork 或笔误，建议核实来源可靠性（构建可过、图标可显示，但供应链来源需确认）。</p>
+
+<hr>
+<p class="tag">报告生成自 WorkBuddy 对抗式代码审查 · 共审查 21 个源文件 + 配置 + 构建产物 + PWA 资源</p>
+
+</div>
+</body>
+</html>

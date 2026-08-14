@@ -9,15 +9,18 @@ import { ArrowLeft, RotateCcw } from 'lucide-react';
 
 export default function HistoryPage() {
   const router = useRouter();
-  const { state } = useGame();
+  const { state, hydrated } = useGame();
   const { players, history } = state;
 
-  // 没数据回首页
+  // 没数据回首页（注意：所有 hook 必须在此之前调用，避免破坏 hooks 顺序）
   useEffect(() => {
     if (players.length === 0) {
       router.replace('/');
     }
   }, [players.length, router]);
+
+  // 水合前占位，避免存档未载入时误判为空
+  if (!hydrated) return null;
   if (players.length === 0) return null;
 
   // 按时间倒序排列
@@ -58,7 +61,11 @@ export default function HistoryPage() {
           <CardContent className="space-y-1.5">
             {reversed.map((log, i) => {
               const ts = new Date(log.timestamp);
-              const time = `${ts.getHours().toString().padStart(2, '0')}:${ts.getMinutes().toString().padStart(2, '0')}:${ts.getSeconds().toString().padStart(2, '0')}`;
+              const isToday = ts.toDateString() === new Date().toDateString();
+              const pad = (n: number) => n.toString().padStart(2, '0');
+              const time = isToday
+                ? `${pad(ts.getHours())}:${pad(ts.getMinutes())}:${pad(ts.getSeconds())}`
+                : `${pad(ts.getMonth() + 1)}-${pad(ts.getDate())} ${pad(ts.getHours())}:${pad(ts.getMinutes())}`;
               const isPositive = log.delta > 0;
 
               return (

@@ -7,22 +7,9 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
+  --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
+  --font-heading: var(--font-geist-sans);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -73,19 +60,6 @@
   --input: oklch(0.88 0.01 160);
   --ring: oklch(0.55 0.12 165);
   --radius: 0.75rem;
-  --chart-1: oklch(0.55 0.12 165);
-  --chart-2: oklch(0.6 0.1 80);
-  --chart-3: oklch(0.5 0.15 50);
-  --chart-4: oklch(0.6 0.08 200);
-  --chart-5: oklch(0.5 0.1 300);
-  --sidebar: oklch(0.985 0.005 160);
-  --sidebar-foreground: oklch(0.25 0.03 160);
-  --sidebar-primary: oklch(0.55 0.12 165);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.93 0.01 90);
-  --sidebar-accent-foreground: oklch(0.35 0.02 160);
-  --sidebar-border: oklch(0.88 0.01 160);
-  --sidebar-ring: oklch(0.55 0.12 165);
 }
 
 /* ─── 暗原色 — 所有暗色主题共用基数，被具体主题覆盖 ─── */
@@ -110,19 +84,6 @@
   --border: oklch(0.3 0.01 160);
   --input: oklch(0.3 0.01 160);
   --ring: oklch(0.55 0.12 165);
-  --chart-1: oklch(0.55 0.12 165);
-  --chart-2: oklch(0.6 0.1 80);
-  --chart-3: oklch(0.5 0.15 50);
-  --chart-4: oklch(0.6 0.08 200);
-  --chart-5: oklch(0.5 0.1 300);
-  --sidebar: oklch(0.22 0.01 160);
-  --sidebar-foreground: oklch(0.9 0.01 160);
-  --sidebar-primary: oklch(0.55 0.12 165);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.28 0.02 160);
-  --sidebar-accent-foreground: oklch(0.85 0.01 160);
-  --sidebar-border: oklch(0.3 0.01 160);
-  --sidebar-ring: oklch(0.55 0.12 165);
 }
 
 [data-theme="dark"] {
@@ -146,20 +107,10 @@
   --border: oklch(0.3 0.01 160);
   --input: oklch(0.3 0.01 160);
   --ring: oklch(0.55 0.12 165);
-  --chart-1: oklch(0.55 0.12 165);
-  --chart-2: oklch(0.6 0.1 80);
-  --chart-3: oklch(0.5 0.15 50);
-  --chart-4: oklch(0.6 0.08 200);
-  --chart-5: oklch(0.5 0.1 300);
-  --sidebar: oklch(0.22 0.01 160);
-  --sidebar-foreground: oklch(0.9 0.01 160);
-  --sidebar-primary: oklch(0.55 0.12 165);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.28 0.02 160);
-  --sidebar-accent-foreground: oklch(0.85 0.01 160);
-  --sidebar-border: oklch(0.3 0.01 160);
-  --sidebar-ring: oklch(0.55 0.12 165);
 }
+
+/* ─── 自定义主题：保留主题主色，但 destructive/success 统一使用语义红绿，
+       确保结算页“大赢家/大输家”在任何主题下都可区分 ─── */
 
 /* ─── 高级灰紫 ─── */
 [data-theme="高级灰紫"] {
@@ -177,26 +128,13 @@
   --muted-foreground: #8D99AE;
   --accent: #8D99AE;
   --accent-foreground: #2B2D42;
-  --destructive: #8D99AE;
-  --success: #8D99AE;
-  --success-foreground: #2B2D42;
+  --destructive: #e5484d;
+  --success: #3fb950;
+  --success-foreground: #ffffff;
   --border: color-mix(in srgb, #8D99AE 40%, transparent);
   --input: color-mix(in srgb, #8D99AE 50%, transparent);
   --ring: #8D99AE;
   --radius: 0.75rem;
-  --chart-1: #8D99AE;
-  --chart-2: #EDF2F4;
-  --chart-3: #2B2D42;
-  --chart-4: #8D99AE;
-  --chart-5: #EDF2F4;
-  --sidebar: #2B2D42;
-  --sidebar-foreground: #EDF2F4;
-  --sidebar-primary: #8D99AE;
-  --sidebar-primary-foreground: #2B2D42;
-  --sidebar-accent: color-mix(in srgb, #2B2D42, #8D99AE 15%);
-  --sidebar-accent-foreground: #EDF2F4;
-  --sidebar-border: color-mix(in srgb, #8D99AE 30%, transparent);
-  --sidebar-ring: #8D99AE;
 }
 
 /* ─── 极简黑白 ─── */
@@ -215,26 +153,13 @@
   --muted-foreground: #A3A3A3;
   --accent: #A3A3A3;
   --accent-foreground: #0A0A0A;
-  --destructive: #A3A3A3;
-  --success: #A3A3A3;
-  --success-foreground: #0A0A0A;
+  --destructive: #e5484d;
+  --success: #3fb950;
+  --success-foreground: #ffffff;
   --border: color-mix(in srgb, #A3A3A3 40%, transparent);
   --input: color-mix(in srgb, #A3A3A3 50%, transparent);
   --ring: #A3A3A3;
   --radius: 0.75rem;
-  --chart-1: #A3A3A3;
-  --chart-2: #F5F5F5;
-  --chart-3: #0A0A0A;
-  --chart-4: #A3A3A3;
-  --chart-5: #F5F5F5;
-  --sidebar: #0A0A0A;
-  --sidebar-foreground: #F5F5F5;
-  --sidebar-primary: #A3A3A3;
-  --sidebar-primary-foreground: #0A0A0A;
-  --sidebar-accent: color-mix(in srgb, #0A0A0A, #A3A3A3 15%);
-  --sidebar-accent-foreground: #F5F5F5;
-  --sidebar-border: color-mix(in srgb, #A3A3A3 30%, transparent);
-  --sidebar-ring: #A3A3A3;
 }
 
 /* ─── 科技蓝灰 ─── */
@@ -253,26 +178,13 @@
   --muted-foreground: #334155;
   --accent: #334155;
   --accent-foreground: #38BDF8;
-  --destructive: #334155;
-  --success: #334155;
-  --success-foreground: #38BDF8;
+  --destructive: #e5484d;
+  --success: #3fb950;
+  --success-foreground: #ffffff;
   --border: color-mix(in srgb, #334155 45%, transparent);
   --input: color-mix(in srgb, #334155 55%, transparent);
   --ring: #334155;
   --radius: 0.75rem;
-  --chart-1: #334155;
-  --chart-2: #38BDF8;
-  --chart-3: #0F172A;
-  --chart-4: #334155;
-  --chart-5: #38BDF8;
-  --sidebar: #0F172A;
-  --sidebar-foreground: #38BDF8;
-  --sidebar-primary: #334155;
-  --sidebar-primary-foreground: #38BDF8;
-  --sidebar-accent: color-mix(in srgb, #0F172A, #334155 18%);
-  --sidebar-accent-foreground: #38BDF8;
-  --sidebar-border: color-mix(in srgb, #334155 35%, transparent);
-  --sidebar-ring: #334155;
 }
 
 /* ─── 冷调蓝绿 ─── */
@@ -291,26 +203,13 @@
   --muted-foreground: #40916C;
   --accent: #40916C;
   --accent-foreground: #D8F3DC;
-  --destructive: #40916C;
-  --success: #40916C;
-  --success-foreground: #D8F3DC;
+  --destructive: #e5484d;
+  --success: #3fb950;
+  --success-foreground: #ffffff;
   --border: color-mix(in srgb, #40916C 40%, transparent);
   --input: color-mix(in srgb, #40916C 50%, transparent);
   --ring: #40916C;
   --radius: 0.75rem;
-  --chart-1: #40916C;
-  --chart-2: #D8F3DC;
-  --chart-3: #1B4332;
-  --chart-4: #40916C;
-  --chart-5: #D8F3DC;
-  --sidebar: #1B4332;
-  --sidebar-foreground: #D8F3DC;
-  --sidebar-primary: #40916C;
-  --sidebar-primary-foreground: #D8F3DC;
-  --sidebar-accent: color-mix(in srgb, #1B4332, #40916C 16%);
-  --sidebar-accent-foreground: #D8F3DC;
-  --sidebar-border: color-mix(in srgb, #40916C 30%, transparent);
-  --sidebar-ring: #40916C;
 }
 
 /* ─── 暖调米灰 ─── */
@@ -329,26 +228,13 @@
   --muted-foreground: #B7B7A4;
   --accent: #B7B7A4;
   --accent-foreground: #4A4A48;
-  --destructive: #B7B7A4;
-  --success: #B7B7A4;
-  --success-foreground: #4A4A48;
+  --destructive: #e5484d;
+  --success: #3fb950;
+  --success-foreground: #ffffff;
   --border: color-mix(in srgb, #B7B7A4 40%, transparent);
   --input: color-mix(in srgb, #B7B7A4 50%, transparent);
   --ring: #B7B7A4;
   --radius: 0.75rem;
-  --chart-1: #B7B7A4;
-  --chart-2: #F5F3EF;
-  --chart-3: #4A4A48;
-  --chart-4: #B7B7A4;
-  --chart-5: #F5F3EF;
-  --sidebar: #4A4A48;
-  --sidebar-foreground: #F5F3EF;
-  --sidebar-primary: #B7B7A4;
-  --sidebar-primary-foreground: #4A4A48;
-  --sidebar-accent: color-mix(in srgb, #4A4A48, #B7B7A4 15%);
-  --sidebar-accent-foreground: #F5F3EF;
-  --sidebar-border: color-mix(in srgb, #B7B7A4 30%, transparent);
-  --sidebar-ring: #B7B7A4;
 }
 
 /* ─── 品牌红黑 ─── */
@@ -367,26 +253,13 @@
   --muted-foreground: #B91C1C;
   --accent: #B91C1C;
   --accent-foreground: #E5E5E5;
-  --destructive: #B91C1C;
-  --success: #B91C1C;
-  --success-foreground: #E5E5E5;
+  --destructive: #f87171;
+  --success: #3fb950;
+  --success-foreground: #ffffff;
   --border: color-mix(in srgb, #B91C1C 35%, transparent);
   --input: color-mix(in srgb, #B91C1C 45%, transparent);
   --ring: #B91C1C;
   --radius: 0.75rem;
-  --chart-1: #B91C1C;
-  --chart-2: #E5E5E5;
-  --chart-3: #1F1F1F;
-  --chart-4: #B91C1C;
-  --chart-5: #E5E5E5;
-  --sidebar: #1F1F1F;
-  --sidebar-foreground: #E5E5E5;
-  --sidebar-primary: #B91C1C;
-  --sidebar-primary-foreground: #E5E5E5;
-  --sidebar-accent: color-mix(in srgb, #1F1F1F, #B91C1C 14%);
-  --sidebar-accent-foreground: #E5E5E5;
-  --sidebar-border: color-mix(in srgb, #B91C1C 25%, transparent);
-  --sidebar-ring: #B91C1C;
 }
 
 /* ─── 商务蓝色 ─── */
@@ -405,26 +278,13 @@
   --muted-foreground: #457B9D;
   --accent: #457B9D;
   --accent-foreground: #F1FAEE;
-  --destructive: #457B9D;
-  --success: #457B9D;
-  --success-foreground: #F1FAEE;
+  --destructive: #e5484d;
+  --success: #3fb950;
+  --success-foreground: #ffffff;
   --border: color-mix(in srgb, #457B9D 40%, transparent);
   --input: color-mix(in srgb, #457B9D 50%, transparent);
   --ring: #457B9D;
   --radius: 0.75rem;
-  --chart-1: #457B9D;
-  --chart-2: #F1FAEE;
-  --chart-3: #1D3557;
-  --chart-4: #457B9D;
-  --chart-5: #F1FAEE;
-  --sidebar: #1D3557;
-  --sidebar-foreground: #F1FAEE;
-  --sidebar-primary: #457B9D;
-  --sidebar-primary-foreground: #F1FAEE;
-  --sidebar-accent: color-mix(in srgb, #1D3557, #457B9D 16%);
-  --sidebar-accent-foreground: #F1FAEE;
-  --sidebar-border: color-mix(in srgb, #457B9D 30%, transparent);
-  --sidebar-ring: #457B9D;
 }
 
 /* ─── 质感棕色 ─── */
@@ -443,26 +303,13 @@
   --muted-foreground: #A68A64;
   --accent: #A68A64;
   --accent-foreground: #3E2C23;
-  --destructive: #A68A64;
-  --success: #A68A64;
-  --success-foreground: #3E2C23;
+  --destructive: #e5484d;
+  --success: #3fb950;
+  --success-foreground: #ffffff;
   --border: color-mix(in srgb, #A68A64 40%, transparent);
   --input: color-mix(in srgb, #A68A64 50%, transparent);
   --ring: #A68A64;
   --radius: 0.75rem;
-  --chart-1: #A68A64;
-  --chart-2: #F2E8CF;
-  --chart-3: #3E2C23;
-  --chart-4: #A68A64;
-  --chart-5: #F2E8CF;
-  --sidebar: #3E2C23;
-  --sidebar-foreground: #F2E8CF;
-  --sidebar-primary: #A68A64;
-  --sidebar-primary-foreground: #3E2C23;
-  --sidebar-accent: color-mix(in srgb, #3E2C23, #A68A64 15%);
-  --sidebar-accent-foreground: #F2E8CF;
-  --sidebar-border: color-mix(in srgb, #A68A64 30%, transparent);
-  --sidebar-ring: #A68A64;
 }
 
 @layer base {

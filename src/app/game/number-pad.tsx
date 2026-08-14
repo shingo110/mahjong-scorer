@@ -5,11 +5,6 @@ import { useGame } from '@/lib/game-context';
 import { Button } from '@/components/ui/button';
 import { Plus, Minus, Delete } from 'lucide-react';
 
-type NumberKey = '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '0';
-type ActionKey = 'C' | '⌫';
-
-const NUMBER_KEYS: NumberKey[] = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
-
 export default function NumberPad() {
   const { scoreActivePlayer } = useGame();
   const [input, setInput] = useState('');
@@ -26,7 +21,8 @@ export default function NumberPad() {
         break;
       default:
         setInput(prev => {
-          const next = prev + key;
+          // 归一化：去除前导零，保证显示值与实际值一致
+          const next = (parseInt(prev + key, 10) || 0).toString();
           if (next.length > 5) return prev;
           return next;
         });
